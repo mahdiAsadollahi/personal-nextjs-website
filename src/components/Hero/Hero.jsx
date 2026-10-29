@@ -225,12 +225,12 @@ export default function Hero() {
 
             <div
               ref={imageRef}
-              className="relative z-[2] flex w-full max-w-140 -rotate-1 items-center justify-center transition-transform duration-300 ease-[cubic-bezier(.2,.7,.3,1)] will-change-transform max-[860px]:max-w-110"
+              className="relative z-2 flex w-full max-w-140 -rotate-1 items-center justify-center transition-transform duration-300 ease-[cubic-bezier(.2,.7,.3,1)] will-change-transform max-[860px]:max-w-110"
             >
               <img
                 src="/hero-image.png"
                 alt="مهدی اسداللهی"
-                className="block h-auto max-h-155 w-full select-none object-contain pointer-events-none drop-shadow-[0_24px_48px_rgba(20,20,26,0.14)] drop-shadow-[0_4px_12px_rgba(20,20,26,0.06)]"
+                className="block h-auto max-h-155 w-full select-none object-contain pointer-events-none drop-shadow-[0_4px_12px_rgba(20,20,26,0.06)]"
                 draggable={false}
               />
             </div>
