@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar/Navbar";
+import Footer from "@/components/Footer/Footer";
 
 export const metadata = {
   title: "مهدی اسداللهی — دنیا از یه زاویهٔ دیگه",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col">
         <Navbar />
         {children}
+        <Footer />
       </body>
     </html>
   );
