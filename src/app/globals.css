@@ -1,26 +1,130 @@
+@import url("https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --surface-2: #f5f3ef;
+  --border: #eae7e2;
+  --border-strong: #dcd8d1;
+
+  --ink: #14141a;
+  --ink-2: #4a4a55;
+  --ink-3: #8a8a95;
+
+  --violet: #7c3aed;
+  --violet-soft: #a78bfa;
+  --pink: #ec4899;
+  --pink-soft: #f472b6;
+  --cyan: #06b6d4;
+  --cyan-soft: #22d3ee;
+  --amber: #f59e0b;
+  --amber-soft: #fbbf24;
+  --emerald: #10b981;
+  --sky: #0ea5e9;
+  --accent: #7c3aed;
+
+  --font-sans: "Vazirmatn", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  --color-bg: #fbfaf8;
+  --color-surface: #ffffff;
+  --color-surface-2: #f5f3ef;
+  --color-border: #eae7e2;
+  --color-border-strong: #dcd8d1;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-ink: #14141a;
+  --color-ink-2: #4a4a55;
+  --color-ink-3: #8a8a95;
+
+  --color-violet: #7c3aed;
+  --color-violet-soft: #a78bfa;
+  --color-pink: #ec4899;
+  --color-pink-soft: #f472b6;
+  --color-cyan: #06b6d4;
+  --color-cyan-soft: #22d3ee;
+  --color-amber: #f59e0b;
+  --color-amber-soft: #fbbf24;
+  --color-emerald: #10b981;
+  --color-sky: #0ea5e9;
+  --color-accent: #7c3aed;
+
+  --font-sans: "Vazirmatn", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  @keyframes badge-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+    }
+    50% {
+      box-shadow: 0 0 0 7px rgba(124, 58, 237, 0.05);
+    }
+  }
+
+  @keyframes grad-shift {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  @keyframes float-soft {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -14px, 0);
+    }
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-padding-top: 96px;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.75;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: linear-gradient(
+      rgba(20, 20, 26, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(20, 20, 26, 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(
+    ellipse 90% 70% at 50% 0%,
+    #000 40%,
+    transparent 90%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 90% 70% at 50% 0%,
+    #000 40%,
+    transparent 90%
+  );
+}
+
+::selection {
+  background: var(--violet-soft);
+  color: #fff;
 }
