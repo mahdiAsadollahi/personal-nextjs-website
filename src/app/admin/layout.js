@@ -29,7 +29,7 @@ export default function AdminLayout({ children }) {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      <div className="flex-1 min-w-0 min-[1025px]:me-65">
+      <div className="flex-1 min-w-0 min-[1025px]:ms-65">
         <AdminTopbar
           title={meta.title}
           subtitle={meta.subtitle}
