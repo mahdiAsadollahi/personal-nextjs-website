@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   RiQuillPenFill,
   RiMenu3Line,
@@ -17,11 +18,14 @@ const navItems = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-transparent">
-      <div className="mx-auto flex max-w-300 items-center justify-between gap-4 px-6 py-4 relative">
+      <div className="relative mx-auto flex max-w-300 items-center justify-between gap-4 px-6 py-4">
         <a
           href="#"
           className="inline-flex items-center gap-2.5 text-base font-bold tracking-tight text-ink no-underline hover:no-underline"

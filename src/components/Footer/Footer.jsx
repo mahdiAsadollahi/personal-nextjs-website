@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import {
   RiQuillPenFill,
   RiGithubFill,
@@ -24,6 +27,10 @@ const socials = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <footer className="relative z-1 border-t border-border bg-bg py-10">
       <div className="mx-auto w-full max-w-300 px-6 max-[420px]:px-4.5">
@@ -33,7 +40,7 @@ export default function Footer() {
               href="#"
               className="inline-flex items-center gap-2.5 text-[1.15rem] font-bold tracking-tight text-ink no-underline hover:no-underline"
             >
-              <span className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-[11px] bg-[conic-gradient(from_210deg_at_30%_30%,#7c3aed,#ec4899_40%,#f59e0b_70%,#06b6d4_100%)] text-white text-base shadow-[0_4px_12px_rgba(124,58,237,0.22)]">
+              <span className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-[11px] bg-[conic-gradient(from_210deg_at_30%_30%,#7c3aed,#ec4899_40%,#f59e0b_70%,#06b6d4_100%)] text-base text-white shadow-[0_4px_12px_rgba(124,58,237,0.22)]">
                 <RiQuillPenFill />
               </span>
               <span>مهدی اسداللهی</span>
