@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # مهدی اسداللهی — دنیا از یه زاویهٔ دیگه
 
 یه وبلاگ شخصی فارسی (RTL) با پنل مدیریت، ساخته‌شده با Next.js و Tailwind CSS.
@@ -16,3 +17,7 @@
 - **JavaScript** (بدون TypeScript)
 
 ## ساختار پروژه
+=======
+# personal-nextjs-website
+my personal website with nextjs
+>>>>>>> b6b4aefac9a5bd7889dbce01c882ceba5851bf3b
