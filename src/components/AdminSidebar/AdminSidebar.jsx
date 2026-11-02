@@ -10,6 +10,7 @@ import {
   RiExternalLinkLine,
   RiSettings3Line,
   RiLogoutBoxRLine,
+  RiFolder2Line,
 } from "react-icons/ri";
 
 const mainItems = [
@@ -21,22 +22,29 @@ const managementItems = [
     key: "users",
     label: "کاربران",
     icon: RiGroupLine,
-    badge: "۲۴۸",
+    badge: "248",
     href: "/admin/users",
   },
   {
     key: "articles",
     label: "مقالات",
     icon: RiArticleLine,
-    badge: "۲۴",
+    badge: "24",
     href: "/admin/articles",
   },
   {
     key: "comments",
     label: "نظرات",
     icon: RiChat3Line,
-    badge: "۱۲",
+    badge: "12",
     href: "/admin/comments",
+  },
+  {
+    key: "projects",
+    label: "پروژه ها",
+    icon: RiFolder2Line,
+    badge: "5",
+    href: "/admin/projects",
   },
 ];
 
