@@ -50,8 +50,9 @@ export default function AdminUsersTable({ users }) {
             خروجی CSV
           </button>
           <button
+            disabled="true"
             type="button"
-            className="inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-violet px-3.5 py-2 text-[0.8rem] font-medium text-white shadow-[0_4px_14px_rgba(124,58,237,0.22)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_8px_20px_rgba(124,58,237,0.28)]"
+            className="inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-violet px-3.5 py-2 text-[0.8rem] font-medium text-white shadow-[0_4px_14px_rgba(124,58,237,0.22)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_8px_20px_rgba(124,58,237,0.28)] disabled:bg-gray-400"
           >
             <RiUserAddLine className="text-base" />
             کاربر جدید
