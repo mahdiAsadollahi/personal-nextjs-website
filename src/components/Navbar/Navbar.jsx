@@ -12,9 +12,10 @@ import {
 
 const navItems = [
   { href: "#hero", label: "خانه", active: true },
-  { href: "#categories", label: "دسته‌بندی‌ها" },
-  { href: "#articles", label: "مقالات" },
-  { href: "#about", label: "درباره" },
+  { href: "categories", label: "دسته‌بندی‌ها" },
+  { href: "articles", label: "مقالات" },
+  { href: "projects", label: "پروژه ها" },
+  { href: "about", label: "درباره" },
 ];
 
 export default function Navbar() {
