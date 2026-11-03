@@ -37,7 +37,7 @@ const roleLabel = {
   user: "کاربر",
 };
 
-export default function AdminUserRow({ user }) {
+export default function AdminUserRow({ user, onEdit, onDelete }) {
   return (
     <tr className="transition-colors hover:bg-violet/2.5">
       <td className="px-4.5 py-4 align-middle">
@@ -90,6 +90,7 @@ export default function AdminUserRow({ user }) {
               <button
                 type="button"
                 title="تایید"
+                onClick={() => onEdit?.(user)}
                 className="inline-grid h-8.5 w-8.5 place-items-center rounded-lg border border-border bg-surface text-base text-ink-2 transition-colors hover:border-emerald hover:bg-emerald/6 hover:text-emerald"
               >
                 <RiCheckLine />
@@ -97,6 +98,7 @@ export default function AdminUserRow({ user }) {
               <button
                 type="button"
                 title="رد"
+                onClick={() => onDelete?.(user)}
                 className="inline-grid h-8.5 w-8.5 place-items-center rounded-lg border border-border bg-surface text-base text-ink-2 transition-colors hover:border-rose hover:bg-rose/6 hover:text-rose"
               >
                 <RiCloseLine />
@@ -107,6 +109,7 @@ export default function AdminUserRow({ user }) {
               <button
                 type="button"
                 title="ویرایش"
+                onClick={() => onEdit?.(user)}
                 className="inline-grid h-8.5 w-8.5 place-items-center rounded-lg border border-border bg-surface text-base text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
               >
                 <RiEditLine />
@@ -115,6 +118,7 @@ export default function AdminUserRow({ user }) {
                 <button
                   type="button"
                   title="حذف"
+                  onClick={() => onDelete?.(user)}
                   className="inline-grid h-8.5 w-8.5 place-items-center rounded-lg border border-border bg-surface text-base text-ink-2 transition-colors hover:border-rose hover:bg-rose/6 hover:text-rose"
                 >
                   <RiDeleteBinLine />

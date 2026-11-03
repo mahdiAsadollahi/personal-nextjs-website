@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import AdminUserRow from "@/components/AdminUserRow/AdminUserRow";
+import EditUserModal from "@/components/EditUserModal/EditUserModal";
+import ConfirmModal from "@/components/ConfirmModal/ConfirmModal";
 import {
   RiSearchLine,
   RiDownloadLine,
@@ -16,9 +18,12 @@ const filters = [
   { id: "blocked", label: "غیرفعال" },
 ];
 
-export default function AdminUsersTable({ users }) {
+export default function AdminUsersTable({ users: initialUsers }) {
+  const [users, setUsers] = useState(initialUsers);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [editing, setEditing] = useState(null);
+  const [confirm, setConfirm] = useState(null);
 
   const filtered = users.filter((u) => {
     const matchesQuery =
@@ -29,151 +34,198 @@ export default function AdminUsersTable({ users }) {
     return matchesQuery && matchesFilter;
   });
 
+  const handleEdit = (user) => setEditing(user);
+
+  const handleSave = (updated) => {
+    setUsers((list) =>
+      list.map((u) =>
+        u.id === updated.id
+          ? {
+              ...u,
+              name: updated.nickname,
+              username: updated.username,
+              role: updated.role,
+              status: updated.status,
+            }
+          : u
+      )
+    );
+  };
+
+  const handleDelete = (user) => setConfirm(user);
+
   return (
-    <div className="overflow-hidden rounded-[20px] border border-border bg-surface">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-5 pb-4 pt-5">
-        <div>
-          <h2 className="flex items-center gap-2 text-base font-bold tracking-[-0.01em] text-ink">
-            <RiUserAddLine className="text-[1.1rem] text-violet" />
-            مدیریت کاربران
-          </h2>
-          <p className="mt-0.5 text-[0.8rem] text-ink-3">
-            {users.length} کاربر ثبت‌نام‌شده
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-1.5 rounded-[10px] border border-border-strong bg-transparent px-3.5 py-2 text-[0.8rem] font-medium text-ink transition-all hover:bg-surface-2 hover:no-underline"
-          >
-            <RiDownloadLine className="text-base" />
-            خروجی CSV
-          </button>
-          <button
-            disabled="true"
-            type="button"
-            className="inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-violet px-3.5 py-2 text-[0.8rem] font-medium text-white shadow-[0_4px_14px_rgba(124,58,237,0.22)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_8px_20px_rgba(124,58,237,0.28)] disabled:bg-gray-400"
-          >
-            <RiUserAddLine className="text-base" />
-            کاربر جدید
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 border-b border-border bg-surface-2/50 px-5 py-3.5">
-        <div className="relative min-w-50 max-w-80 flex-1">
-          <RiSearchLine className="pointer-events-none absolute inset-e-3 top-1/2 -translate-y-1/2 text-[0.95rem] text-ink-3" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="جستجو در کاربران..."
-            className="w-full rounded-[10px] border border-border bg-surface py-2.25 pe-10 ps-3.5 font-[inherit] text-[0.86rem] text-ink transition-[border-color,box-shadow] placeholder:text-ink-3 focus:border-violet focus:shadow-[0_0_0_3px_rgba(124,58,237,0.10)] focus:outline-none"
-          />
-        </div>
-        <div className="inline-flex gap-1 rounded-[10px] border border-border bg-surface p-0.75">
-          {filters.map((f) => (
+    <>
+      <div className="overflow-hidden rounded-[20px] border border-border bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-5 pb-4 pt-5">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-bold tracking-[-0.01em] text-ink">
+              <RiUserAddLine className="text-[1.1rem] text-violet" />
+              مدیریت کاربران
+            </h2>
+            <p className="mt-0.5 text-[0.8rem] text-ink-3">
+              {users.length} کاربر ثبت‌نام‌شده
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              key={f.id}
               type="button"
-              onClick={() => setFilter(f.id)}
-              className={`rounded-[7px] border-0 px-3 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
-                filter === f.id
-                  ? "bg-ink text-white"
-                  : "bg-transparent text-ink-2 hover:text-ink"
-              }`}
+              className="inline-flex items-center justify-center gap-1.5 rounded-[10px] border border-border-strong bg-transparent px-3.5 py-2 text-[0.8rem] font-medium text-ink transition-all hover:bg-surface-2"
             >
-              {f.label}
+              <RiDownloadLine className="text-base" />
+              خروجی CSV
             </button>
-          ))}
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-violet px-3.5 py-2 text-[0.8rem] font-medium text-white shadow-[0_4px_14px_rgba(124,58,237,0.22)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_8px_20px_rgba(124,58,237,0.28)]"
+            >
+              <RiUserAddLine className="text-base" />
+              کاربر جدید
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[0.9rem]">
-          <thead className="bg-surface-2">
-            <tr>
-              <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                کاربر
-              </th>
-              <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                نقش
-              </th>
-              <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                وضعیت
-              </th>
-              <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                تاریخ عضویت
-              </th>
-              <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                آخرین ورود
-              </th>
-              <th className="w-30 whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                عملیات
-              </th>
-            </tr>
-          </thead>
-          <tbody className="[&>tr:last-child>td]:border-b-0">
-            {filtered.length === 0 ? (
+        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-surface-2/50 px-5 py-3.5">
+          <div className="relative min-w-50 max-w-80 flex-1">
+            <RiSearchLine className="pointer-events-none absolute inset-3 top-1/2 -translate-y-1/2 text-[0.95rem] text-ink-3" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="جستجو در کاربران..."
+              className="w-full rounded-[10px] border border-border bg-surface py-2.25 pe-10 ps-3.5 font-[inherit] text-[0.86rem] text-ink transition-[border-color,box-shadow] placeholder:text-ink-3 focus:border-violet focus:shadow-[0_0_0_3px_rgba(124,58,237,0.10)] focus:outline-none"
+            />
+          </div>
+          <div className="inline-flex gap-1 rounded-[10px] border border-border bg-surface p-0.75">
+            {filters.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFilter(f.id)}
+                className={`rounded-[7px] border-0 px-3 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+                  filter === f.id
+                    ? "bg-ink text-white"
+                    : "bg-transparent text-ink-2 hover:text-ink"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-[0.9rem]">
+            <thead className="bg-surface-2">
               <tr>
-                <td colSpan={6} className="px-5 py-16 text-center">
-                  <div className="flex flex-col items-center gap-2 text-ink-3">
-                    <RiSearchLine className="text-[2.5rem] opacity-50" />
-                    <p className="text-base font-bold text-ink-2">
-                      کاربری پیدا نشد
-                    </p>
-                    <p className="max-w-80 text-[0.85rem] leading-[1.9]">
-                      با این جستجو یا فیلتر، کاربری پیدا نشد. یه عبارت دیگه
-                      امتحان کن.
-                    </p>
-                  </div>
-                </td>
+                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
+                  کاربر
+                </th>
+                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
+                  نقش
+                </th>
+                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
+                  وضعیت
+                </th>
+                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
+                  تاریخ عضویت
+                </th>
+                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
+                  آخرین ورود
+                </th>
+                <th className="w-30 whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
+                  عملیات
+                </th>
               </tr>
-            ) : (
-              filtered.map((user) => <AdminUserRow key={user.id} user={user} />)
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="[&>tr:last-child>td]:border-b-0">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-16 text-center">
+                    <div className="flex flex-col items-center gap-2 text-ink-3">
+                      <RiSearchLine className="text-[2.5rem] opacity-50" />
+                      <p className="text-base font-bold text-ink-2">
+                        کاربری پیدا نشد
+                      </p>
+                      <p className="max-w-80 text-[0.85rem] leading-[1.9]">
+                        با این جستجو یا فیلتر، کاربری پیدا نشد. یه عبارت دیگه
+                        امتحان کن.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((user) => (
+                  <AdminUserRow
+                    key={user.id}
+                    user={user}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-4">
-        <span className="text-[0.8rem] text-ink-3">
-          نمایش ۱ تا {filtered.length} از {users.length} کاربر
-        </span>
-        <div className="flex gap-1">
-          <button
-            type="button"
-            disabled
-            className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 opacity-40"
-          >
-            <RiArrowRightSLine />
-          </button>
-          <button
-            type="button"
-            className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-ink bg-ink px-2.5 text-[0.82rem] font-medium text-white"
-          >
-            ۱
-          </button>
-          <button
-            type="button"
-            className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
-          >
-            ۲
-          </button>
-          <button
-            type="button"
-            className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
-          >
-            ۳
-          </button>
-          <button
-            type="button"
-            className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
-          >
-            <RiArrowLeftSLine />
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-4">
+          <span className="text-[0.8rem] text-ink-3">
+            نمایش ۱ تا {filtered.length} از {users.length} کاربر
+          </span>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              disabled
+              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 opacity-40"
+            >
+              <RiArrowRightSLine />
+            </button>
+            <button
+              type="button"
+              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-ink bg-ink px-2.5 text-[0.82rem] font-medium text-white"
+            >
+              ۱
+            </button>
+            <button
+              type="button"
+              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
+            >
+              ۲
+            </button>
+            <button
+              type="button"
+              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
+            >
+              ۳
+            </button>
+            <button
+              type="button"
+              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
+            >
+              <RiArrowLeftSLine />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <EditUserModal
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        user={editing}
+        onSave={handleSave}
+      />
+
+      <ConfirmModal
+        open={!!confirm}
+        onClose={() => setConfirm(null)}
+        onConfirm={() => {
+          setUsers((list) => list.filter((u) => u.id !== confirm?.id));
+        }}
+        title="حذف کاربر"
+        message={`مطمئنی می‌خوای «${confirm?.name}» رو حذف کنی؟ این عمل قابل بازگشت نیست.`}
+        confirmLabel="حذف"
+        danger
+      />
+    </>
   );
 }

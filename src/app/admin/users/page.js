@@ -3,6 +3,7 @@ import AdminUsersTable from "@/components/AdminUsersTable/AdminUsersTable";
 const users = [
   {
     id: 1,
+    username: "testUser",
     initial: "م",
     color: "violet",
     name: "مهدی اسداللهی",
@@ -14,6 +15,7 @@ const users = [
   },
   {
     id: 2,
+    username: "testUser",
     initial: "س",
     color: "pink",
     name: "سارا محمدی",
@@ -25,6 +27,7 @@ const users = [
   },
   {
     id: 3,
+    username: "testUser",
     initial: "ع",
     color: "cyan",
     name: "علی رضایی",
@@ -36,6 +39,7 @@ const users = [
   },
   {
     id: 4,
+    username: "testUser",
     initial: "م",
     color: "amber",
     name: "مریم حسینی",
@@ -47,6 +51,7 @@ const users = [
   },
   {
     id: 5,
+    username: "testUser",
     initial: "ر",
     color: "emerald",
     name: "رضا کریمی",
