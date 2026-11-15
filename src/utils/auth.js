@@ -34,7 +34,7 @@ const generateRefreshToken = (data) => {
   return token;
 };
 
-const valiadtePassword = (password) => {
+const validatePassword = (password) => {
   const pattern =
     /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/g;
   return pattern.test(password);
@@ -46,5 +46,5 @@ export {
   generateAccessToken,
   verifyAccessToken,
   generateRefreshToken,
-  valiadtePassword,
+  validatePassword,
 };
