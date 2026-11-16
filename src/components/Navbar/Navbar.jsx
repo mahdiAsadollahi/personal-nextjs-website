@@ -83,8 +83,9 @@ export default function Navbar() {
   const isActive = (href) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
 
-  const handleLogout = () => {
-    document.cookie = "token=; path=/; max-age=0; samesite=lax; httponly=true";
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+
     setUser(null);
     setUserMenuOpen(false);
     router.replace("/");
@@ -192,7 +193,7 @@ export default function Navbar() {
             </div>
           ) : (
             <a
-              href="/register"
+              href="/login"
               className="inline-flex items-center gap-1.5 rounded-[10px] bg-ink px-4 py-2.5 text-[0.88rem] font-medium text-white shadow-[0_1px_3px_rgba(20,20,26,0.05),0_1px_2px_rgba(20,20,26,0.03)] transition-all hover:-translate-y-px hover:bg-black hover:no-underline hover:shadow-[0_6px_20px_rgba(20,20,26,0.06),0_2px_6px_rgba(20,20,26,0.04)]"
             >
               <RiUserLine className="text-base" />

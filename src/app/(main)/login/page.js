@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { RiArrowLeftLine, RiEyeLine } from "react-icons/ri";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { RiArrowLeftLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
+import MessageModal from "@/components/MessageModal/MessageModal";
 
 export default function LoginPage() {
   const mainRef = useRef(null);
+  const router = useRouter();
+
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
 
   useEffect(() => {
     const reduceMotion = window.matchMedia(
@@ -56,6 +70,83 @@ export default function LoginPage() {
       cancelAnimationFrame(rafBlobs);
     };
   }, []);
+
+  const showMessage = (type, title, message) => {
+    setModal({ open: true, type, title, message });
+  };
+
+  const closeMessage = () => setModal((m) => ({ ...m, open: false }));
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+
+  const validate = () => {
+    const next = {};
+    const username = form.username.trim();
+
+    if (!username) next.username = "نام کاربری الزامی است";
+    else if (username.length < 3) next.username = "حداقل ۳ کاراکتر";
+    else if (username.length > 30) next.username = "حداکثر ۳۰ کاراکتر";
+
+    if (!form.password) next.password = "رمز عبور الزامی است";
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+    if (!validate()) {
+      showMessage(
+        "error",
+        "خطای اعتبارسنجی",
+        "لطفاً فیلدهای مشخص‌شده را اصلاح کن."
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: form.username.trim(),
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showMessage(
+          "error",
+          "ورود ناموفق",
+          data.message || "نام کاربری یا رمز عبور اشتباه است."
+        );
+        setLoading(false);
+        return;
+      }
+
+      showMessage("success", "ورود موفق", data.message || "خوش برگشتی :)");
+      setTimeout(() => {
+        router.replace("/");
+        router.refresh();
+      }, 1200);
+    } catch {
+      showMessage("error", "خطای شبکه", "اتصال به سرور برقرار نشد.");
+      setLoading(false);
+    }
+  };
 
   return (
     <main
@@ -110,8 +201,7 @@ export default function LoginPage() {
 
         <form
           className="flex flex-col gap-4"
-          action="/login"
-          method="post"
+          onSubmit={handleSubmit}
           noValidate
         >
           <div className="flex flex-col gap-1.75">
@@ -119,17 +209,29 @@ export default function LoginPage() {
               htmlFor="username"
               className="ps-0.5 text-[0.82rem] font-medium text-ink-2"
             >
-              نام کاربری
+              نام کاربری <span className="text-rose">*</span>
             </label>
             <input
               id="username"
               name="username"
               type="text"
+              dir="ltr"
               autoComplete="username"
               placeholder="نام کاربری ..."
-              required
-              className="w-full rounded-[10px] border border-border-strong bg-surface px-4 py-3.25 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
+              value={form.username}
+              onChange={handleChange}
+              aria-invalid={!!errors.username}
+              className={`w-full rounded-[10px] border bg-surface px-4 py-3.25 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none ${
+                errors.username
+                  ? "border-rose focus:border-rose"
+                  : "border-border-strong focus:border-violet"
+              }`}
             />
+            {errors.username && (
+              <span className="ps-0.5 text-[0.76rem] text-rose">
+                {errors.username}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.75">
@@ -138,7 +240,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="ps-0.5 text-[0.82rem] font-medium text-ink-2"
               >
-                رمز عبور
+                رمز عبور <span className="text-rose">*</span>
               </label>
               <a
                 href="#"
@@ -151,36 +253,44 @@ export default function LoginPage() {
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 placeholder="رمزتو وارد کن ..."
-                required
-                className="w-full rounded-[10px] border border-border-strong bg-surface px-4 py-3.25 pe-11.5 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
+                value={form.password}
+                onChange={handleChange}
+                aria-invalid={!!errors.password}
+                className={`w-full rounded-[10px] border bg-surface px-4 py-3.25 pe-11.5 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none ${
+                  errors.password
+                    ? "border-rose focus:border-rose"
+                    : "border-border-strong focus:border-violet"
+                }`}
               />
               <button
                 type="button"
-                aria-label="نمایش رمز عبور"
+                aria-label={
+                  showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"
+                }
                 tabIndex={-1}
-                onClick={(e) => {
-                  const btn = e.currentTarget;
-                  const input = btn.parentElement.querySelector("input");
-                  const isPass = input.type === "password";
-                  input.type = isPass ? "text" : "password";
-                  input.focus();
-                }}
+                onClick={() => setShowPassword((v) => !v)}
                 className="absolute top-1/2 inset-e-1.5 grid h-8.5 w-8.5 -translate-y-1/2 place-items-center rounded-lg border-0 bg-transparent text-base text-ink-3 transition-colors hover:bg-ink/5 hover:text-ink"
               >
-                <RiEyeLine />
+                {showPassword ? <RiEyeOffLine /> : <RiEyeLine />}
               </button>
             </div>
+            {errors.password && (
+              <span className="ps-0.5 text-[0.76rem] text-rose">
+                {errors.password}
+              </span>
+            )}
           </div>
 
           <button
             type="submit"
-            className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-[10px] border border-transparent bg-violet px-5.5 py-3.5 text-[0.98rem] font-medium text-white shadow-[0_1px_3px_rgba(20,20,26,0.05),0_1px_2px_rgba(20,20,26,0.03)] transition-all hover:-translate-y-px hover:bg-black hover:shadow-[0_6px_20px_rgba(20,20,26,0.06),0_2px_6px_rgba(20,20,26,0.04)]"
+            disabled={loading}
+            className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-[10px] border border-transparent bg-violet px-5.5 py-3.5 text-[0.98rem] font-medium text-white shadow-[0_6px_18px_rgba(124,58,237,0.24)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_12px_28px_rgba(124,58,237,0.30)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
           >
-            <span>بزن بریم</span>
-            <RiArrowLeftLine />
+            <span>{loading ? "در حال ورود..." : "بزن بریم"}</span>
+            {!loading && <RiArrowLeftLine />}
           </button>
         </form>
 
@@ -197,6 +307,14 @@ export default function LoginPage() {
           </a>
         </div>
       </div>
+
+      <MessageModal
+        open={modal.open}
+        onClose={closeMessage}
+        type={modal.type}
+        title={modal.title}
+        message={modal.message}
+      />
     </main>
   );
 }
