@@ -1,6 +1,5 @@
-import { sign } from "jsonwebtoken";
-
-const { hash, compare } = require("bcryptjs");
+import { sign, verify } from "jsonwebtoken";
+import { hash, compare } from "bcryptjs";
 
 const hashPassword = async (password) => {
   const hashedPassword = await hash(password, 12);
@@ -25,7 +24,7 @@ const verifyAccessToken = (token) => {
     return tokenPayload;
   } catch (err) {
     console.log("Verify Access Token Error ->", err);
-    return false;
+    return null;
   }
 };
 
@@ -37,8 +36,7 @@ const generateRefreshToken = (data) => {
 };
 
 const validatePassword = (password) => {
-  const pattern =
-    /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/g;
+  const pattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[#?!@$%^&*-]).{8,}$/;
   return pattern.test(password);
 };
 
