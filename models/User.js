@@ -3,15 +3,14 @@ const { default: mongoose } = require("mongoose");
 const schema = new mongoose.Schema(
   {
     nickname: {
-      type: "String",
+      type: String,
       required: true,
       minlength: 2,
       maxlength: 30,
       trim: true,
-      unique: true,
     },
     username: {
-      type: "String",
+      type: String,
       required: true,
       minlength: 3,
       maxlength: 30,
@@ -19,13 +18,13 @@ const schema = new mongoose.Schema(
       unique: true,
     },
     password: {
-      type: "String",
+      type: String,
       required: true,
       minlength: 8,
       trim: true,
     },
     role: {
-      type: "String",
+      type: String,
       enum: ["USER", "ADMIN"],
       default: "USER",
     },

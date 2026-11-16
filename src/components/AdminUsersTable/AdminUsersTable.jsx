@@ -1,231 +1,258 @@
 "use client";
 
-import { useState } from "react";
-import AdminUserRow from "@/components/AdminUserRow/AdminUserRow";
-import EditUserModal from "@/components/EditUserModal/EditUserModal";
-import ConfirmModal from "@/components/ConfirmModal/ConfirmModal";
+import { useEffect, useState } from "react";
 import {
   RiSearchLine,
-  RiDownloadLine,
-  RiUserAddLine,
-  RiArrowRightSLine,
-  RiArrowLeftSLine,
+  RiUserLine,
+  RiShieldLine,
+  RiRefreshLine,
 } from "react-icons/ri";
 
-const filters = [
-  { id: "all", label: "همه" },
-  { id: "active", label: "فعال" },
-  { id: "blocked", label: "غیرفعال" },
-];
+const roleLabels = {
+  ADMIN: { label: "مدیر", cls: "bg-violet/10 text-violet" },
+  USER: { label: "کاربر", cls: "bg-ink/5 text-ink-2" },
+};
 
-export default function AdminUsersTable({ users: initialUsers }) {
-  const [users, setUsers] = useState(initialUsers);
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [editing, setEditing] = useState(null);
-  const [confirm, setConfirm] = useState(null);
-
-  const filtered = users.filter((u) => {
-    const matchesQuery =
-      !query ||
-      u.name.toLowerCase().includes(query.toLowerCase()) ||
-      u.email.toLowerCase().includes(query.toLowerCase());
-    const matchesFilter = filter === "all" || u.status === filter;
-    return matchesQuery && matchesFilter;
+export default function AdminUsersTable() {
+  const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
   });
+  const [search, setSearch] = useState("");
+  const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const handleEdit = (user) => setEditing(user);
+  const fetchUsers = async (params = {}) => {
+    setLoading(true);
+    setError("");
+    try {
+      const qs = new URLSearchParams({
+        page: String(params.page ?? pagination.page),
+        limit: String(pagination.limit),
+        ...(params.search !== undefined
+          ? { search: params.search }
+          : search
+          ? { search }
+          : {}),
+        ...(params.role !== undefined
+          ? { role: params.role }
+          : role
+          ? { role }
+          : {}),
+      });
 
-  const handleSave = (updated) => {
-    setUsers((list) =>
-      list.map((u) =>
-        u.id === updated.id
-          ? {
-              ...u,
-              name: updated.nickname,
-              username: updated.username,
-              role: updated.role,
-              status: updated.status,
-            }
-          : u
-      )
-    );
+      const res = await fetch(`/api/users?${qs.toString()}`, {
+        cache: "no-store",
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(json.message || "خطا در دریافت کاربران");
+        setUsers([]);
+        return;
+      }
+
+      setUsers(json.data || []);
+      setPagination(json.pagination || pagination);
+    } catch {
+      setError("اتصال به سرور برقرار نشد.");
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (user) => setConfirm(user);
+  useEffect(() => {
+    fetchUsers({ page: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchUsers({ page: 1, search });
+  };
+
+  const handleReset = () => {
+    setSearch("");
+    setRole("");
+    fetchUsers({ page: 1, search: "", role: "" });
+  };
+
+  const goToPage = (p) => {
+    if (p < 1 || p > pagination.totalPages || p === pagination.page) return;
+    fetchUsers({ page: p });
+  };
+
+  const formatDate = (d) => {
+    if (!d) return "—";
+    return new Intl.DateTimeFormat("fa-IR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(new Date(d));
+  };
 
   return (
-    <>
-      <div className="overflow-hidden rounded-[20px] border border-border bg-surface">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-5 pb-4 pt-5">
-          <div>
-            <h2 className="flex items-center gap-2 text-base font-bold tracking-[-0.01em] text-ink">
-              <RiUserAddLine className="text-[1.1rem] text-violet" />
-              مدیریت کاربران
-            </h2>
-            <p className="mt-0.5 text-[0.8rem] text-ink-3">
-              {users.length} کاربر ثبت‌نام‌شده
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-1.5 rounded-[10px] border border-border-strong bg-transparent px-3.5 py-2 text-[0.8rem] font-medium text-ink transition-all hover:bg-surface-2"
-            >
-              <RiDownloadLine className="text-base" />
-              خروجی CSV
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-violet px-3.5 py-2 text-[0.8rem] font-medium text-white shadow-[0_4px_14px_rgba(124,58,237,0.22)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_8px_20px_rgba(124,58,237,0.28)]"
-            >
-              <RiUserAddLine className="text-base" />
-              کاربر جدید
-            </button>
-          </div>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-[1.3rem] font-extrabold text-ink">کاربران</h1>
+          <p className="mt-1 text-[0.85rem] text-ink-2">
+            {pagination.total} کاربر ثبت‌نام شده
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-surface-2/50 px-5 py-3.5">
-          <div className="relative min-w-50 max-w-80 flex-1">
-            <RiSearchLine className="pointer-events-none absolute inset-3 top-1/2 -translate-y-1/2 text-[0.95rem] text-ink-3" />
+        <div className="flex flex-wrap items-center gap-2">
+          <form onSubmit={handleSearch} className="relative flex items-center">
+            <RiSearchLine className="pointer-events-none absolute inset-e-3 text-ink-3" />
             <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="جستجو در کاربران..."
-              className="w-full rounded-[10px] border border-border bg-surface py-2.25 pe-10 ps-3.5 font-[inherit] text-[0.86rem] text-ink transition-[border-color,box-shadow] placeholder:text-ink-3 focus:border-violet focus:shadow-[0_0_0_3px_rgba(124,58,237,0.10)] focus:outline-none"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="جستجوی نام یا نام کاربری..."
+              className="w-64 rounded-[10px] border border-border-strong bg-surface py-2.5 pe-9 ps-4 text-[0.85rem] text-ink placeholder:text-ink-3 focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
             />
-          </div>
-          <div className="inline-flex gap-1 rounded-[10px] border border-border bg-surface p-0.75">
-            {filters.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setFilter(f.id)}
-                className={`rounded-[7px] border-0 px-3 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
-                  filter === f.id
-                    ? "bg-ink text-white"
-                    : "bg-transparent text-ink-2 hover:text-ink"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
+          </form>
 
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="cursor-pointer rounded-[10px] border border-border-strong bg-surface px-4 py-2.5 text-[0.85rem] text-ink focus:border-violet focus:outline-none"
+          >
+            <option value="">همهٔ نقش‌ها</option>
+            <option value="ADMIN">مدیر</option>
+            <option value="USER">کاربر</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center gap-1.5 rounded-[10px] border border-border-strong bg-transparent px-3.5 py-2.5 text-[0.85rem] text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
+          >
+            <RiRefreshLine />
+            بازنشانی
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[0.85rem] text-rose">
+          {error}
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[0.9rem]">
-            <thead className="bg-surface-2">
-              <tr>
-                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                  کاربر
-                </th>
-                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                  نقش
-                </th>
-                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                  وضعیت
-                </th>
-                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                  تاریخ عضویت
-                </th>
-                <th className="whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                  آخرین ورود
-                </th>
-                <th className="w-30 whitespace-nowrap border-b border-border px-4.5 py-3.5 text-right text-[0.78rem] font-bold tracking-[0.02em] text-ink-2">
-                  عملیات
-                </th>
+          <table className="w-full min-w-160 border-collapse text-right">
+            <thead>
+              <tr className="border-b border-border bg-surface-2/50 text-[0.78rem] uppercase tracking-wider text-ink-3">
+                <th className="px-5 py-3.5 font-semibold">کاربر</th>
+                <th className="px-5 py-3.5 font-semibold">نام کاربری</th>
+                <th className="px-5 py-3.5 font-semibold">نقش</th>
+                <th className="px-5 py-3.5 font-semibold">تاریخ عضویت</th>
+                <th className="px-5 py-3.5 font-semibold">آخرین ورود</th>
               </tr>
             </thead>
-            <tbody className="[&>tr:last-child>td]:border-b-0">
-              {filtered.length === 0 ? (
+            <tbody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="border-b border-border last:border-0">
+                    {Array.from({ length: 5 }).map((__, j) => (
+                      <td key={j} className="px-5 py-4">
+                        <div className="h-4 w-24 animate-pulse rounded bg-ink/5" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-16 text-center">
-                    <div className="flex flex-col items-center gap-2 text-ink-3">
-                      <RiSearchLine className="text-[2.5rem] opacity-50" />
-                      <p className="text-base font-bold text-ink-2">
-                        کاربری پیدا نشد
-                      </p>
-                      <p className="max-w-80 text-[0.85rem] leading-[1.9]">
-                        با این جستجو یا فیلتر، کاربری پیدا نشد. یه عبارت دیگه
-                        امتحان کن.
-                      </p>
-                    </div>
+                  <td
+                    colSpan={5}
+                    className="px-5 py-12 text-center text-[0.9rem] text-ink-3"
+                  >
+                    کاربری پیدا نشد.
                   </td>
                 </tr>
               ) : (
-                filtered.map((user) => (
-                  <AdminUserRow
-                    key={user.id}
-                    user={user}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))
+                users.map((u) => {
+                  const roleInfo = roleLabels[u.role] || roleLabels.USER;
+                  return (
+                    <tr
+                      key={u._id}
+                      className="border-b border-border transition-colors last:border-0 hover:bg-surface-2/40"
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#7c3aed,#ec4899)] text-[0.8rem] font-bold text-white">
+                            {u.nickname?.charAt(0) || "؟"}
+                          </span>
+                          <span className="text-[0.9rem] font-medium text-ink">
+                            {u.nickname}
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        dir="ltr"
+                        className="px-5 py-4 text-left text-[0.88rem] text-ink-2"
+                      >
+                        @{u.username}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.75rem] font-semibold ${roleInfo.cls}`}
+                        >
+                          {u.role === "ADMIN" ? (
+                            <RiShieldLine />
+                          ) : (
+                            <RiUserLine />
+                          )}
+                          {roleInfo.label}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-[0.85rem] text-ink-2">
+                        {formatDate(u.createdAt)}
+                      </td>
+                      <td className="px-5 py-4 text-[0.85rem] text-ink-2">
+                        {u.updatedAt ? formatDate(u.updatedAt) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-4">
-          <span className="text-[0.8rem] text-ink-3">
-            نمایش ۱ تا {filtered.length} از {users.length} کاربر
-          </span>
-          <div className="flex gap-1">
-            <button
-              type="button"
-              disabled
-              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 opacity-40"
-            >
-              <RiArrowRightSLine />
-            </button>
-            <button
-              type="button"
-              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-ink bg-ink px-2.5 text-[0.82rem] font-medium text-white"
-            >
-              ۱
-            </button>
-            <button
-              type="button"
-              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
-            >
-              ۲
-            </button>
-            <button
-              type="button"
-              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
-            >
-              ۳
-            </button>
-            <button
-              type="button"
-              className="inline-grid h-8.5 min-w-8.5 place-items-center rounded-lg border border-border bg-surface px-2.5 text-[0.82rem] font-medium text-ink-2 transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-ink"
-            >
-              <RiArrowLeftSLine />
-            </button>
+        {pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-2/30 px-5 py-3">
+            <span className="text-[0.8rem] text-ink-3">
+              صفحهٔ {pagination.page} از {pagination.totalPages}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => goToPage(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="rounded-lg border border-border-strong bg-transparent px-3 py-1.5 text-[0.82rem] text-ink-2 transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                قبلی
+              </button>
+              <button
+                type="button"
+                onClick={() => goToPage(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+                className="rounded-lg border border-border-strong bg-transparent px-3 py-1.5 text-[0.82rem] text-ink-2 transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                بعدی
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
-
-      <EditUserModal
-        open={!!editing}
-        onClose={() => setEditing(null)}
-        user={editing}
-        onSave={handleSave}
-      />
-
-      <ConfirmModal
-        open={!!confirm}
-        onClose={() => setConfirm(null)}
-        onConfirm={() => {
-          setUsers((list) => list.filter((u) => u.id !== confirm?.id));
-        }}
-        title="حذف کاربر"
-        message={`مطمئنی می‌خوای «${confirm?.name}» رو حذف کنی؟ این عمل قابل بازگشت نیست.`}
-        confirmLabel="حذف"
-        danger
-      />
-    </>
+    </div>
   );
 }
