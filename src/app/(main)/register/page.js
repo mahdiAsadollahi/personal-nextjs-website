@@ -1,10 +1,31 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { RiArrowLeftLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
+import MessageModal from "@/components/MessageModal/MessageModal";
 
 export default function RegisterPage() {
   const mainRef = useRef(null);
+  const router = useRouter();
+
+  const [form, setForm] = useState({
+    nickname: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+    agree: false,
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
 
   useEffect(() => {
     const reduceMotion = window.matchMedia(
@@ -56,6 +77,110 @@ export default function RegisterPage() {
       cancelAnimationFrame(rafBlobs);
     };
   }, []);
+
+  const showMessage = (type, title, message) => {
+    setModal({ open: true, type, title, message });
+  };
+
+  const closeMessage = () => setModal((m) => ({ ...m, open: false }));
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+
+  const validate = () => {
+    const next = {};
+    const nickname = form.nickname.trim();
+    const username = form.username.trim();
+
+    if (!nickname) next.nickname = "نام نمایشی الزامی است";
+    else if (nickname.length < 2) next.nickname = "حداقل ۲ کاراکتر";
+    else if (nickname.length > 30) next.nickname = "حداکثر ۳۰ کاراکتر";
+
+    if (!username) next.username = "نام کاربری الزامی است";
+    else if (username.length < 3) next.username = "حداقل ۳ کاراکتر";
+    else if (username.length > 30) next.username = "حداکثر ۳۰ کاراکتر";
+    else if (!/^[a-zA-Z0-9_.-]+$/.test(username))
+      next.username = "فقط حروف، اعداد، _، - و . مجاز است";
+
+    const password = form.password;
+    if (!password) next.password = "رمز عبور الزامی است";
+    else if (password.length < 8) next.password = "حداقل ۸ کاراکتر";
+    else if (!/[A-Z]/.test(password))
+      next.password = "حداقل یک حرف بزرگ لازم است";
+    else if (!/[a-z]/.test(password))
+      next.password = "حداقل یک حرف کوچک لازم است";
+    else if (!/[0-9]/.test(password)) next.password = "حداقل یک عدد لازم است";
+    else if (!/[#?!@$%^&*-]/.test(password))
+      next.password = "حداقل یک کاراکتر خاص لازم است";
+
+    if (!form.confirmPassword) next.confirmPassword = "تکرار رمز الزامی است";
+    else if (form.confirmPassword !== password)
+      next.confirmPassword = "رمزها یکسان نیستند";
+
+    if (!form.agree) next.agree = "پذیرش قوانین الزامی است";
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+    if (!validate()) {
+      showMessage(
+        "error",
+        "خطای اعتبارسنجی",
+        "لطفاً فیلدهای مشخص‌شده را اصلاح کن."
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nickname: form.nickname.trim(),
+          username: form.username.trim(),
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showMessage(
+          "error",
+          "ثبت‌نام ناموفق",
+          data.message || "خطایی رخ داد، لطفاً دوباره تلاش کن."
+        );
+        setLoading(false);
+        return;
+      }
+
+      showMessage(
+        "success",
+        "ثبت‌نام موفق",
+        data.message || "حسابت ساخته شد، خوش اومدی :)"
+      );
+      setTimeout(() => {
+        router.replace("/");
+        router.refresh();
+      }, 1200);
+    } catch (err) {
+      showMessage("error", "خطای شبکه", "اتصال به سرور برقرار نشد.");
+      setLoading(false);
+    }
+  };
 
   return (
     <main
@@ -110,8 +235,7 @@ export default function RegisterPage() {
 
         <form
           className="flex flex-col gap-4"
-          action="/register"
-          method="post"
+          onSubmit={handleSubmit}
           noValidate
         >
           <div className="flex flex-col gap-1.75">
@@ -119,7 +243,7 @@ export default function RegisterPage() {
               htmlFor="nickname"
               className="ps-0.5 text-[0.82rem] font-medium text-ink-2"
             >
-              نیک‌نیم
+              نیک‌نیم <span className="text-rose">*</span>
             </label>
             <input
               id="nickname"
@@ -128,9 +252,20 @@ export default function RegisterPage() {
               dir="ltr"
               autoComplete="nickname"
               placeholder="مثلاً: mahdi_dev"
-              required
-              className="w-full rounded-[10px] border border-border-strong bg-surface px-4 py-3.25 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
+              value={form.nickname}
+              onChange={handleChange}
+              aria-invalid={!!errors.nickname}
+              className={`w-full rounded-[10px] border bg-surface px-4 py-3.25 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none ${
+                errors.nickname
+                  ? "border-rose focus:border-rose"
+                  : "border-border-strong focus:border-violet"
+              }`}
             />
+            {errors.nickname && (
+              <span className="ps-0.5 text-[0.76rem] text-rose">
+                {errors.nickname}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.75">
@@ -138,17 +273,29 @@ export default function RegisterPage() {
               htmlFor="username"
               className="ps-0.5 text-[0.82rem] font-medium text-ink-2"
             >
-              نام کاربری
+              نام کاربری <span className="text-rose">*</span>
             </label>
             <input
               id="username"
               name="username"
               type="text"
+              dir="ltr"
               autoComplete="username"
               placeholder="نام کاربری خودت رو انتخاب کن"
-              required
-              className="w-full rounded-[10px] border border-border-strong bg-surface px-4 py-3.25 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
+              value={form.username}
+              onChange={handleChange}
+              aria-invalid={!!errors.username}
+              className={`w-full rounded-[10px] border bg-surface px-4 py-3.25 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none ${
+                errors.username
+                  ? "border-rose focus:border-rose"
+                  : "border-border-strong focus:border-violet"
+              }`}
             />
+            {errors.username && (
+              <span className="ps-0.5 text-[0.76rem] text-rose">
+                {errors.username}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.75">
@@ -156,41 +303,92 @@ export default function RegisterPage() {
               htmlFor="password"
               className="ps-0.5 text-[0.82rem] font-medium text-ink-2"
             >
-              رمز عبور
+              رمز عبور <span className="text-rose">*</span>
             </label>
             <div className="relative">
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 minLength={8}
                 placeholder="حداقل ۸ کاراکتر"
-                required
-                className="w-full rounded-[10px] border border-border-strong bg-surface px-4 py-3.25 pe-11.5 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
+                value={form.password}
+                onChange={handleChange}
+                aria-invalid={!!errors.password}
+                className={`w-full rounded-[10px] border bg-surface px-4 py-3.25 pe-11.5 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none ${
+                  errors.password
+                    ? "border-rose focus:border-rose"
+                    : "border-border-strong focus:border-violet"
+                }`}
               />
               <button
                 type="button"
-                aria-label="نمایش رمز عبور"
+                aria-label={
+                  showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"
+                }
                 tabIndex={-1}
-                onClick={(e) => {
-                  const btn = e.currentTarget;
-                  const input = btn.parentElement.querySelector("input");
-                  const isPass = input.type === "password";
-                  input.type = isPass ? "text" : "password";
-                  input.focus();
-                }}
+                onClick={() => setShowPassword((v) => !v)}
                 className="absolute top-1/2 inset-e-1.5 grid h-8.5 w-8.5 -translate-y-1/2 place-items-center rounded-lg border-0 bg-transparent text-base text-ink-3 transition-colors hover:bg-ink/5 hover:text-ink"
               >
-                <RiEyeLine />
+                {showPassword ? <RiEyeOffLine /> : <RiEyeLine />}
               </button>
             </div>
+            {errors.password && (
+              <span className="ps-0.5 text-[0.76rem] text-rose">
+                {errors.password}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1.75">
+            <label
+              htmlFor="confirmPassword"
+              className="ps-0.5 text-[0.82rem] font-medium text-ink-2"
+            >
+              تکرار رمز عبور <span className="text-rose">*</span>
+            </label>
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="رمز عبور را دوباره وارد کن"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                aria-invalid={!!errors.confirmPassword}
+                className={`w-full rounded-[10px] border bg-surface px-4 py-3.25 pe-11.5 font-[inherit] text-[0.95rem] text-ink transition-[border-color,box-shadow,background-color] placeholder:text-ink-3 hover:border-[#c9c4bb] focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none ${
+                  errors.confirmPassword
+                    ? "border-rose focus:border-rose"
+                    : "border-border-strong focus:border-violet"
+                }`}
+              />
+              <button
+                type="button"
+                aria-label={
+                  showConfirm ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"
+                }
+                tabIndex={-1}
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute top-1/2 inset-e-1.5 grid h-8.5 w-8.5 -translate-y-1/2 place-items-center rounded-lg border-0 bg-transparent text-base text-ink-3 transition-colors hover:bg-ink/5 hover:text-ink"
+              >
+                {showConfirm ? <RiEyeOffLine /> : <RiEyeLine />}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <span className="ps-0.5 text-[0.76rem] text-rose">
+                {errors.confirmPassword}
+              </span>
+            )}
           </div>
 
           <label className="mt-1 flex items-start gap-2.5 ps-0.5 text-[0.82rem] leading-[1.85] text-ink-2">
             <input
               type="checkbox"
-              required
+              name="agree"
+              checked={form.agree}
+              onChange={handleChange}
               className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-violet"
             />
             <span>
@@ -201,16 +399,22 @@ export default function RegisterPage() {
               >
                 قوانین و حریم خصوصی
               </a>{" "}
-              موافقم.
+              موافقم. <span className="text-rose">*</span>
             </span>
           </label>
+          {errors.agree && (
+            <span className="-mt-2 ps-0.5 text-[0.76rem] text-rose">
+              {errors.agree}
+            </span>
+          )}
 
           <button
             type="submit"
-            className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-[10px] border border-transparent bg-violet px-5.5 py-3.5 text-[0.98rem] font-medium text-white shadow-[0_6px_18px_rgba(124,58,237,0.24)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_12px_28px_rgba(124,58,237,0.30)]"
+            disabled={loading}
+            className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-[10px] border border-transparent bg-violet px-5.5 py-3.5 text-[0.98rem] font-medium text-white shadow-[0_6px_18px_rgba(124,58,237,0.24)] transition-all hover:-translate-y-px hover:bg-[#6d28d9] hover:shadow-[0_12px_28px_rgba(124,58,237,0.30)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
           >
-            <span>ساخت حساب</span>
-            <RiArrowLeftLine />
+            <span>{loading ? "در حال ثبت‌نام..." : "ساخت حساب"}</span>
+            {!loading && <RiArrowLeftLine />}
           </button>
         </form>
 
@@ -227,6 +431,14 @@ export default function RegisterPage() {
           </a>
         </div>
       </div>
+
+      <MessageModal
+        open={modal.open}
+        onClose={closeMessage}
+        type={modal.type}
+        title={modal.title}
+        message={modal.message}
+      />
     </main>
   );
 }

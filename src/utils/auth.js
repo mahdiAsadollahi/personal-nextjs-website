@@ -1,3 +1,5 @@
+import { sign } from "jsonwebtoken";
+
 const { hash, compare } = require("bcryptjs");
 
 const hashPassword = async (password) => {

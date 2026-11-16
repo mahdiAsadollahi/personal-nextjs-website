@@ -1,5 +1,4 @@
 const { default: mongoose } = require("mongoose");
-const { unique } = require("next/dist/build/utils");
 
 const schema = new mongoose.Schema(
   {
@@ -9,6 +8,7 @@ const schema = new mongoose.Schema(
       minlength: 2,
       maxlength: 30,
       trim: true,
+      unique: true,
     },
     username: {
       type: "String",
