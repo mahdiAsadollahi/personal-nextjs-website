@@ -22,7 +22,6 @@ import {
   RiBookOpenLine,
 } from "react-icons/ri";
 
-/* ---------- استخراج سرفصل‌ها از HTML برای TOC ---------- */
 function extractHeadings(html) {
   if (typeof window === "undefined") return [];
   const doc = new DOMParser().parseFromString(html, "text/html");
@@ -106,7 +105,7 @@ export default function ArticleDetail({ article, related, comments }) {
       </div>
 
       {/* ---------- HERO ---------- */}
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="relative overflow-hidden">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0"
@@ -146,7 +145,7 @@ export default function ArticleDetail({ article, related, comments }) {
             {article.category}
           </span>
 
-          <h1 className="mb-6 text-[clamp(1.9rem,4.4vw,3rem)] font-extrabold leading-[1.25] tracking-[-0.025em] text-ink">
+          <h1 className="mb-6 text-[clamp(1.9rem,4.4vw,3rem)] font-extrabold leading-tight tracking-tight text-ink">
             {article.title}
           </h1>
 
@@ -174,7 +173,7 @@ export default function ArticleDetail({ article, related, comments }) {
 
       {/* ---------- COVER ---------- */}
       <div className="relative z-1 mx-auto -mt-4 w-full max-w-250 px-6 max-[420px]:px-4.5">
-        <figure className="relative aspect-[16/9] overflow-hidden rounded-[24px] border border-border shadow-[0_24px_60px_-20px_rgba(20,20,26,0.25)]">
+        <figure className="relative aspect-video overflow-hidden rounded-3xl border border-border shadow-[0_24px_60px_-20px_rgba(20,20,26,0.25)]">
           <img
             src={article.cover}
             alt={article.coverAlt}
@@ -197,7 +196,7 @@ export default function ArticleDetail({ article, related, comments }) {
             />
 
             {/* share */}
-            <div className="mt-14 mb-12 flex flex-wrap items-center justify-between gap-6 rounded-[16px] border border-border bg-surface-2/60 px-5 py-4">
+            <div className="mt-14 mb-12 flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-border bg-surface-2/60 px-5 py-4">
               <span className="inline-flex items-center gap-2 text-[0.88rem] font-medium text-ink-2">
                 <RiHeartLine className="text-violet" />
                 این مقاله رو به اشتراک بذار
@@ -267,7 +266,7 @@ export default function ArticleDetail({ article, related, comments }) {
             <div className="sticky top-24 flex flex-col gap-6">
               {/* TOC */}
               {headings.length > 0 && (
-                <nav className="rounded-[16px] border border-border bg-surface p-5">
+                <nav className="rounded-2xl border border-border bg-surface p-5">
                   <div className="mb-3 inline-flex items-center gap-2 text-[0.82rem] font-bold text-ink">
                     <RiListUnordered className="text-violet" />
                     فهرست مطالب
@@ -294,7 +293,7 @@ export default function ArticleDetail({ article, related, comments }) {
               )}
 
               {/* reading info */}
-              <div className="rounded-[16px] border border-border bg-surface p-5">
+              <div className="rounded-2xl border border-border bg-surface p-5">
                 <div className="mb-3 inline-flex items-center gap-2 text-[0.82rem] font-bold text-ink">
                   <RiBookOpenLine className="text-violet" />
                   اطلاعات مقاله
@@ -397,7 +396,7 @@ export default function ArticleDetail({ article, related, comments }) {
                 placeholder="نظرت رو بنویس..."
                 aria-label="متن نظر"
                 required
-                className="min-h-25 w-full resize-y rounded-[12px] border border-border-strong bg-surface px-4 py-3.5 font-[inherit] text-[0.95rem] leading-[1.9] text-ink transition-[border-color,box-shadow] placeholder:text-ink-3 focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
+                className="min-h-25 w-full resize-y rounded-xl border border-border-strong bg-surface px-4 py-3.5 font-[inherit] text-[0.95rem] leading-[1.9] text-ink transition-[border-color,box-shadow] placeholder:text-ink-3 focus:border-violet focus:shadow-[0_0_0_4px_rgba(124,58,237,0.10)] focus:outline-none"
               />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="text-[0.76rem] text-ink-3">
