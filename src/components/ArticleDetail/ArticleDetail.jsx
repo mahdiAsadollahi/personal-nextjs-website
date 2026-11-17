@@ -46,7 +46,6 @@ export default function ArticleDetail({ article, related, comments }) {
     [article.contentHtml]
   );
 
-  /* ---------- progress bar + active heading ---------- */
   useEffect(() => {
     const onScroll = () => {
       const el = articleRef.current;
@@ -104,7 +103,7 @@ export default function ArticleDetail({ article, related, comments }) {
         />
       </div>
 
-      {/* ---------- HERO ---------- */}
+    
       <section className="relative overflow-hidden">
         <div
           aria-hidden="true"
